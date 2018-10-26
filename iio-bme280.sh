@@ -2,24 +2,28 @@
 
 source /usr/local/lib/collectd/_functions.sh
 
-HOSTNAME="${COLLECTD_HOSTNAME:-$(hostname -f)}"
-INTERVAL="${COLLECTD_INTERVAL:-60}"
-DOMOTICZ_PORT="${2:-8080}"
-DOMOTICZ_IDX="${1:-1}"
-DOMOTICZ_URL="http://${HOSTNAME}:${DOMOTICZ_PORT}/json.htm?type=command&param=udevice&idx=${DOMOTICZ_IDX}&nvalue=0&svalue="
+ID="77"
+NAME="bme280"
 
-i2cdev=$(dmesg | grep 'connected i2c-tiny-usb device' | head -n1 | sed -r 's/.*\s+i2c-([0-9]+).*/\1/')
-echo "bme280 0x77" > /sys/bus/i2c/devices/i2c-${i2cdev}/new_device
+test_i2c_device "${ID}" "${NAME}"
+
+TEM_ID="1"
+HUM_ID="2"
+BAR_ID="3"
+
+mymqtt_init "${ID}" "${TEM_ID}" "${S_TEMP}" "BME280 TEMPERATURE"
+mymqtt_init "${ID}" "${HUM_ID}" "${S_HUM}" "BME280 HUMIDITY"
+mymqtt_init "${ID}" "${BAR_ID}" "${S_BARO}" "BME280 BAROMETER"
 
 while true; do
     for sensor in /sys/bus/iio/devices/iio\:device*; do
-        name=$(cat "${sensor}/name")
-        if [ "$name" != "bme280" ]; then
+        sensorname=$(cat "${sensor}/name")
+        if [ "$sensorname" != "${NAME}" ]; then
             continue
         fi
 
         prefix="sensors-weather"
-        suffix="-${name}"
+        suffix="-${sensorname}"
         declare -A data
         data[temperature]=$(echo "scale=2;$(cat ${sensor}/in_temp_input)/1000" | bc )
         data[pressure]=$(echo "scale=2;$(cat ${sensor}/in_pressure_input)*10/1" | bc)
@@ -29,9 +33,9 @@ while true; do
             echo "PUTVAL $HOSTNAME/${prefix}/${key}${suffix} interval=$INTERVAL N:${data[$key]}"
         done
 
-        domoticz_data="${data[temperature]};${data[humidity]};$(humidity_to_comfort ${data[humidity]});${data[pressure]};0"
-        SEND="${DOMOTICZ_URL}${domoticz_data}"
-        domoticz_send ${SEND}
+        mymqtt_update "${ID}" "${TEM_ID}" "${V_TEMP}" "${data[temperature]}"
+        mymqtt_update "${ID}" "${HUM_ID}" "${V_HUM}" "${data[humidity]}"
+        mymqtt_update "${ID}" "${BAR_ID}" "${V_PRESSURE}" "${data[pressure]}"
 
     done
     sleep "$INTERVAL"
