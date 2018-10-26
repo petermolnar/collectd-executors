@@ -14,7 +14,7 @@ mymqtt_init "${ID}" "${TEM_ID}" "${S_TEMP}" "CBG TEMPERATURE"
 mymqtt_init "${ID}" "${HUM_ID}" "${S_HUM}" "CBG HUMIDITY"
 mymqtt_init "${ID}" "${BAR_ID}" "${S_BARO}" "CBG BAROMETER"
 mymqtt_init "${ID}" "${RAIN_ID}" "${S_RAIN}" "CBG RAIN"
-mymqtt_init "${ID}" "${SUN_ID}" "${S_CUSTOM}" "CBG SUN"
+#mymqtt_init "${ID}" "${SUN_ID}" "${S_CUSTOM}" "CBG SUN"
 
 while true; do
     cbg="$(wget -O- -q https://www.cl.cam.ac.uk/research/dtg/weather/current-obs.txt)"
@@ -48,7 +48,7 @@ while true; do
     mymqtt_update "${ID}" "${HUM_ID}" "${V_HUM}" "${data[humidity]}"
     mymqtt_update "${ID}" "${BAR_ID}" "${V_PRESSURE}" "${data[pressure]}"
     mymqtt_update "${ID}" "${RAIN_ID}" "${V_RAIN}" "${data[rain]}"
-    mymqtt_update "${ID}" "${SUN_ID}" "${V_VAR1}" "${data[sunshine]}"
+    #mymqtt_update "${ID}" "${SUN_ID}" "${V_VAR1}" "${data[sunshine]}"
 
     sleep "$INTERVAL"
 done

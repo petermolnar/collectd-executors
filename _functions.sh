@@ -104,8 +104,8 @@ V_VA=55
 V_POWER_FACTOR=56
 
 function test_i2c_device {
-    if [ ! -d "/sys/bus/i2c/devices/i2c-${I2CBUS}/${I2CBUS}-00${2}" ]; then
-        echo "run ${3} 0x${2} > /sys/bus/i2c/devices/i2c-${I2CBUS}/new_device"
+    if [ ! -d "/sys/bus/i2c/devices/i2c-${I2CBUS}/${I2CBUS}-00${1}" ]; then
+        echo "run ${2} 0x${1} > /sys/bus/i2c/devices/i2c-${I2CBUS}/new_device"
         exit 2
     fi
 }
@@ -159,4 +159,9 @@ function mymqtt_init {
 function mymqtt_update {
     mymqtt_test
     mosquitto_pub -t "${MQTT_TOPIC}/${1}/${2}/1/0/${3}" -m "${4}"
+}
+
+function mymqtt_battery {
+    mymqtt_test
+    mosquitto_pub -t "${MQTT_TOPIC}/${1}/${2}/3/0/0" -m "${3}"
 }
