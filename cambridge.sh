@@ -31,17 +31,20 @@ while true; do
     #Summary:      very humid, cold, light winds
 
 
-    prefix="sensors-weather"
-    suffix="-cambridge"
+    #prefix="sensors-weather"
+    plugin="curl_json"
+    instance="sensors"
+    key_instance="cambridge"
     declare -A data
     data[temperature]=$(grep "Temperature" <<< "${cbg}" | awk '{print $2}')
     data[humidity]=$(echo "scale=0;$(grep "Humidity" <<< "${cbg}" | awk '{print $2}')/1" | bc)
     data[pressure]=$(echo "scale=2;$(grep "Pressure" <<< "${cbg}" | awk '{print $2}')/1" | bc)
     data[rain]=$(echo "scale=2;$(grep "Rainfall" <<< "${cbg}" | awk '{print $2}')/1" | bc)
     data[sunshine]=$(echo "scale=2;$(grep "Sunshine" <<< "${cbg}" | awk '{print $2}')/1" | bc)
+    data[dewpoint]=$(grep "Dewpoint" <<< "${cbg}" | awk '{print $2}')
 
     for key in "${!data[@]}"; do
-        echo "PUTVAL $HOSTNAME/${prefix}/${key}${suffix} interval=$INTERVAL N:${data[$key]}"
+        echo "PUTVAL $HOSTNAME/${plugin}-${instance}/${key}-${key_instance} interval=$INTERVAL N:${data[$key]}"
     done
 
     mymqtt_update "${ID}" "${TEM_ID}" "${V_TEMP}" "${data[temperature]}"
