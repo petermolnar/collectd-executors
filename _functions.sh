@@ -7,7 +7,7 @@ MQTT_PORT="${COLLECTD_MQTTPORT:-1883}"
 MQTT_HOST="${COLLECTD_MQTTHOST:-$(hostname -f)}"
 MQTT_TOPIC="${COLLECTD_MQTTOPIC:-domoticz/in/MyMQTT}"
 
-I2CBUS=$(dmesg | grep 'connected i2c-tiny-usb device' | head -n1 | sed -r 's/.*\s+i2c-([0-9]+).*/\1/')
+I2CBUS=$(/usr/sbin/i2cdetect -l | grep i2c-tiny-usb | sed -r 's/^i2c-([0-9]+).*/\1/')
 
 S_DOOR=0
 S_MOTION=1
@@ -110,7 +110,6 @@ function test_i2c_device {
     fi
 }
 
-
 function humidity_to_comfort {
     hum=$(echo "scale=0;$1/1" | bc)
 
@@ -130,7 +129,6 @@ function humidity_to_comfort {
 function domoticz_send {
     SEND="${1}"
     if nc -z ${HOSTNAME} ${DOMOTICZ_PORT}; then
-        #>&2 echo "sending to domoticz: ${SEND}"
         curl -s -H "Accept: application/json" "$SEND" >/dev/null
     else
         >&2 echo "domoticz can't be reaced at ${HOSTNAME} ${DOMOTICZ_PORT}"
@@ -144,8 +142,7 @@ function mymqtt_test {
     fi
 
     if ! nc -z ${MQTT_HOST} ${MQTT_PORT}; then
-        >&2 echo "no MQTT available on ${MQTT_HOST}:${MQTT_PORT}"
-        exit 2
+        exit 0
     fi
 
 }

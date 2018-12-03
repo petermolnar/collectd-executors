@@ -23,14 +23,14 @@ while true; do
         fi
 
         prefix="sensors-weather"
-        suffix="-${sensorname}"
+        suffix="${sensorname}"
         declare -A data
         data[ir]=$(cat ${sensor}/in_intensity_ir_raw)
-        data[light]=$(cat ${sensor}/in_intensity_raw)
+        data[visible]=$(cat ${sensor}/in_intensity_raw)
         data[uv]=$(cat ${sensor}/in_uvindex_raw)
 
         for key in "${!data[@]}"; do
-            echo "PUTVAL $HOSTNAME/${prefix}/${key}${suffix} interval=$INTERVAL N:${data[$key]}"
+            echo "PUTVAL $HOSTNAME/${prefix}/gauge-${key}_${suffix} interval=$INTERVAL N:${data[$key]}"
         done
 
         mymqtt_update "${ID}" "${UV_ID}" "${V_UV}" "${data[uv]}"
